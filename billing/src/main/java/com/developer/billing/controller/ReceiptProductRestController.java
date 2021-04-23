@@ -197,8 +197,36 @@ public class ReceiptProductRestController {
         return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
     }
 
-    
+    @DeleteMapping("/receipt_product")
+    public ResponseEntity<?> delete(@PathVariable long id){
+        Map<String, Object> response = new HashMap<>();
+        ReceiptProduct receiptProductAct = iReceiptProductServices.findById(id);
+        Timestamp ts = new Timestamp(System.currentTimeMillis());
 
+        Date date = ts;
+
+        Long time = date.getTime() - receiptProductAct.getCreateAt().getTime();
+        int hours = (int) ((time / (1000 * 60 * 60)) % 24);
+
+        if(hours >= 12){
+            response.put("mensaje", "Error: El limite para poder eliminar el pedido tiene que se menos de 12 horas");
+            response.put("time", hours);
+            return new ResponseEntity<Map<String , Object>>(response, HttpStatus.NOT_FOUND);
+        }
+
+        try {
+            ReceiptProduct receiptProduct = iReceiptProductServices.findById(id);
+
+            iReceiptProductServices.delete(id);
+        } catch (DataAccessException e) {
+            response.put("mensaje" , "Error al eliminar en la base de datos ");
+            response.put("error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
+            return new ResponseEntity<Map<String , Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        response.put("mensaje", "se eliminado correctamente el cliente");
+        return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
+    }
 
 
 }
